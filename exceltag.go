@@ -67,7 +67,7 @@ func CreateExcel[S comparable](data []S, path, filename string) error {
 				continue
 			}
 
-			if !field.CanSet() {
+			if !field.CanInterface() {
 				err := fmt.Errorf("filed name have to be capitalize")
 				return err
 			}
@@ -87,7 +87,7 @@ func CreateExcel[S comparable](data []S, path, filename string) error {
 		}
 	}
 
-	err := AutofitColumn(f)
+	err := AutofitColumn(f, "Sheet1")
 	if err != nil {
 		return err
 	}
@@ -104,8 +104,8 @@ func CreateExcel[S comparable](data []S, path, filename string) error {
 }
 
 // Autofit all columns according to their text content
-func AutofitColumn(file *excelize.File) error {
-	cols, _ := file.GetCols("Sheet1")
+func AutofitColumn(file *excelize.File, sheetName string) error {
+	cols, _ := file.GetCols(sheetName)
 	for i, col := range cols {
 		largestWidth := 0
 		for j, rowCell := range col {
@@ -119,13 +119,13 @@ func AutofitColumn(file *excelize.File) error {
 			if cellWidth > largestWidth {
 				largestWidth = cellWidth
 			}
-			file.SetRowHeight("Sheet1", j+1, 25)
+			file.SetRowHeight(sheetName, j+1, 25)
 		}
 		name, err := excelize.ColumnNumberToName(i + 1)
 		if err != nil {
 			return err
 		}
-		file.SetColWidth("Sheet1", name, name, float64(largestWidth))
+		file.SetColWidth(sheetName, name, name, float64(largestWidth))
 	}
 
 	return nil
