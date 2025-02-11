@@ -15,7 +15,7 @@ func main() {
 		{FieldName: "second item"},
 		{FieldName: "third item"},
 	}
-	err := exceltag.CreateExcel(examples, ".", "example.xlsx")
+	err := exceltag.CreateExcel(examples, "./", "example.xlsx")
 	if err != nil {
 		fmt.Println("err", err)
 	}
