@@ -1,11 +1,18 @@
-# exceltag
+# Exceltag
+## Introduction
+This package allows you to generate a simple Excel file from an array of structs by adding the tag `excel:"your header"`.
+
+Furthermore, fields without the `excel` tag will be ignored, allowing you to exclude specific fields from export.
+
+Built on top of the [qax-os/excelize](https://github.com/qax-os/excelize)
+ package.
+
+### Installation
+```cmd
+go get github.com/noahchiu22/exceltag
+```
+
 ## Generate a simple excel file with tags in your struct
-
-This package will generate a simple excel by your array of any struct with adding tag `excel:"your header"`
-
-Futhermore, it will ignore field without excel tag if you don't want to export to excel
-
-For example:
 ```go
 
 type studentInfo struct {
@@ -105,5 +112,4 @@ if err != nil {
 ```
 
 # Resource
-[qax-os/excelize
-](https://github.com/qax-os/excelize)
+[qax-os/excelize](https://github.com/qax-os/excelize)
