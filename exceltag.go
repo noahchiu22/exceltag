@@ -3,14 +3,13 @@ package exceltag
 import (
 	"fmt"
 	"reflect"
-	"time"
 	"unicode"
 	"unicode/utf8"
 
 	"github.com/xuri/excelize/v2"
 )
 
-// Using any excel tag as title in the struct to create excel
+// Using any excel tag as title in the struct to create a new excel file
 //
 //	type example struct {
 //		fieldName  any  `excel:"your header"`
@@ -30,7 +29,7 @@ import (
 //	|    :    | ...
 //
 // And it will automatically fit column width by the cell content
-func CreateExcel[S comparable](data []S, path, filename string) error {
+func CreateExcel[S comparable](data []S) (*excelize.File, error) {
 	f := excelize.NewFile()
 
 	defer func() error {
@@ -68,58 +67,42 @@ func CreateExcel[S comparable](data []S, path, filename string) error {
 			}
 
 			if !field.CanInterface() {
-				err := fmt.Errorf("filed name have to be capitalize")
-				return err
+				return f, fmt.Errorf("filed name have to be capitalize")
 			}
 
 			value := field.Interface()
-			switch temp := value.(type) {
-			case int64:
-				value = temp
-			case float64:
-				value = temp
-			case time.Time:
-				value = temp.Format("2006-01-02 15:04:05")
-			default:
-				value = temp
+			err := f.SetCellValue("Sheet1", cell, value)
+			if err != nil {
+				return f, err
 			}
-			f.SetCellValue("Sheet1", cell, value)
 		}
 	}
 
 	err := AutofitColumn(f, "Sheet1")
 	if err != nil {
-		return err
+		return f, err
 	}
 
-	if path == "" {
-		path = "./"
-	}
-	// Save spreadsheet by the given path.
-	if err := f.SaveAs(path + filename); err != nil {
-		return err
-	}
-
-	return nil
+	return f, nil
 }
 
-// Autofit all columns according to their text content
+// Autofit all columns according to their text content of the given sheet
 func AutofitColumn(file *excelize.File, sheetName string) error {
 	cols, _ := file.GetCols(sheetName)
 	for i, col := range cols {
 		largestWidth := 0
-		for j, rowCell := range col {
+		for _, rowCell := range col {
 			fixedWidth := 0
+			// check if the cell is chinese or japanese
 			for _, r := range rowCell {
 				if unicode.Is(unicode.Han, r) {
 					fixedWidth++
 				}
 			}
-			cellWidth := utf8.RuneCountInString(rowCell) + 4 + fixedWidth // for margin
+			cellWidth := utf8.RuneCountInString(rowCell) + fixedWidth + 4 // for margin
 			if cellWidth > largestWidth {
 				largestWidth = cellWidth
 			}
-			file.SetRowHeight(sheetName, j+1, 25)
 		}
 		name, err := excelize.ColumnNumberToName(i + 1)
 		if err != nil {
